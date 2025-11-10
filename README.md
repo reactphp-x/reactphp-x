@@ -8,6 +8,7 @@ A Laravel-like project structure built on ReactPHP-X, featuring routing, logging
 - **Env**: `.env` via `vlucas/phpdotenv`.
 - **Logging**: Channel-based config, single filesystem adapter.
 - **Database**: Async MySQL using Cycle via `reactphp-x/cycle-database`.
+- **ORM**: Cycle ORM with annotated entities and migrations support.
 
 ### Requirements
 - PHP >= 8.1
@@ -29,6 +30,13 @@ composer hello
 # Before running, import the table structure:
 # mysql -u root -p your_database < app/Commands/database-example.sql
 composer db-example
+
+# ORM example
+php app/Commands/orm-example.php
+
+# Database migrations
+php app/Commands/migrations.php [action]
+# Actions: list, status, run, rollback
 ```
 
 ### Directory Structure
@@ -36,6 +44,8 @@ composer db-example
 app/
   Commands/
   Http/Controllers/
+  Models/          # ORM entities
+  Repositories/    # Custom repositories
 bootstrap/
   app.php
   helpers.php
@@ -43,6 +53,7 @@ config/
   app.php
   logging.php
   database.php
+migrations/        # Database migrations
 public/
   index.php
 routes/
@@ -68,6 +79,10 @@ table('users')->where('id', 1)->fetchAll();
 table('users')->insert()->values($data)->run();
 table('users')->update($data, ['id' => 1])->run();
 table('users')->upsert()->conflicts(['email'])->values($data)->updates($fields)->run();
+
+// ORM helper
+orm()->getRepository(User::class)->findByPK(1);
+orm()->getRepository(User::class)->findAll([]);
 ```
 
 ### Routing
@@ -97,6 +112,96 @@ class HelloController
 
 ### HTTP Entry
 `public/index.php` wires the router and reads listen address from `config('app.listen')`.
+
+### ORM (Cycle ORM)
+
+This project uses Cycle ORM with PHP 8 attributes for entity definitions.
+
+#### Entity Definition
+
+Define entities in `app/Models/` using PHP 8 attributes:
+
+```php
+namespace App\Models;
+
+use Cycle\Annotated\Annotation as Cycle;
+
+#[Cycle\Entity(table: 'users', repository: \App\Repositories\UserRepository::class)]
+class User
+{
+    #[Cycle\Column(type: 'primary')]
+    public int $id;
+
+    #[Cycle\Column(type: 'string')]
+    public string $name;
+
+    #[Cycle\Column(type: 'smallInteger')]
+    public int $status = 0;
+
+    #[Cycle\Column(type: 'string', nullable: true)]
+    public ?string $avatar = null;
+    
+    #[Cycle\Column(type: 'datetime', nullable: true)]
+    public ?\DateTimeInterface $createdAt = null;
+
+    #[Cycle\Column(type: 'datetime', nullable: true)]
+    public ?\DateTimeInterface $updatedAt = null;
+}
+```
+
+#### Custom Repository
+
+Create custom repositories in `app/Repositories/`:
+
+```php
+namespace App\Repositories;
+
+class UserRepository extends \Cycle\ORM\Select\Repository
+{
+    public function withActive(): self
+    {
+        $repository = clone $this;
+        $repository->select->where('status', 1);
+        return $repository;
+    }
+}
+```
+
+#### Usage Examples
+
+```php
+use App\Models\User;
+
+// Get repository
+$repository = orm()->getRepository(User::class);
+
+// Find by primary key
+$user = $repository->findByPK(1);
+
+// Find all with custom scope
+$activeUsers = $repository->withActive()->findAll([]);
+
+// Find all
+$users = $repository->findAll([]);
+```
+
+#### Migrations
+
+Manage database migrations:
+
+```bash
+# List migrations
+php app/Commands/migrations.php list
+
+# Run pending migrations
+php app/Commands/migrations.php run
+
+# Rollback last migration
+php app/Commands/migrations.php rollback
+```
+
+Migration files are stored in `migrations/` directory with format:
+`YYYYMMDD.HHMMSS_0_0_default_description.php`
 
 ### Filesystem & Logging
 - Filesystem adapter is a container singleton `fs`.

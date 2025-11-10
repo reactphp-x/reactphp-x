@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Cycle\Annotated\Annotation as Cycle;
 
-#[Cycle\Entity(table: 'users', repository: \App\Repository\UserRepository::class)]
+#[Cycle\Entity(table: 'users', repository: \App\Repositories\UserRepository::class)]
 class User
 {
     #[Cycle\Column(type: 'primary')]
