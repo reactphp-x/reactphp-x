@@ -2,7 +2,7 @@
 
 use ReactphpX\CycleDatabase\AsyncDatabase;
 use Cycle\Database\Table;
-
+use Cycle\ORM\ORM;
 if (!function_exists('config_path')) {
     function config_path(string $path = ''): string
     {
@@ -78,4 +78,23 @@ if (!function_exists('table')) {
     }
 }
 
+if (!function_exists('orm')) {
+    function orm(): ORM
+    {
+        return app('orm');
+    }
+}
+
+if (!function_exists('getMemoryUsage')) {
+    function getMemoryUsage(): array
+    {
+        return [
+            'date' => date('Y-m-d H:i:s'),
+            'current_usage_mb' => round(memory_get_usage() / 1024 / 1024, 3),
+            'current_usage_real_mb' => round(memory_get_usage(true) / 1024 / 1024, 3),
+            'peak_usage_mb' => round(memory_get_peak_usage() / 1024 / 1024, 3),
+            'peak_usage_real_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 3),
+        ];
+    }
+}
 

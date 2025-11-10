@@ -28,6 +28,12 @@ class CreateUsers extends Migration
             'size' => 255,
             'comment' => '',
         ])
+        ->addColumn('status', 'smallInteger', [
+            'nullable' => false,
+            'defaultValue' => 0,
+            'size' => 4,
+            'comment' => '默认0: 未激活, 1:正常',
+        ])
         ->addColumn('avatar', 'string', [
             'nullable' => true,
             'defaultValue' => null,

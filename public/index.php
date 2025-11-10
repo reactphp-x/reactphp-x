@@ -3,6 +3,7 @@
 use React\Http\HttpServer;
 use React\Socket\SocketServer;
 use ReactphpX\Route\Route;
+use ReactphpX\Log\Log;
 
 $container = require __DIR__ . '/../bootstrap/app.php';
 
@@ -11,6 +12,7 @@ $route = new Route($container);
 require __DIR__ . '/../routes/api.php';
 
 $http = new HttpServer(
+    new \App\Http\Middleware\Base\OrmCleanHandller(),
     new \App\Http\Middleware\Base\AccessLogHandler(),
     new \App\Http\Middleware\Base\ErrorHandler(),
     new \App\Http\Middleware\Base\FiberHandler(),
@@ -26,3 +28,10 @@ $http->listen($socket);
 echo "Server running at http://{$listen}\n";
 
 
+$currentMemoryUsage = getMemoryUsage();
+\React\EventLoop\Loop::addPeriodicTimer(1, function () use ($currentMemoryUsage) {
+    Log::channel('stdout')->info('',[
+        'start_memory_usage' => $currentMemoryUsage,
+        'current_memory_usage' => getMemoryUsage(),
+    ]); 
+});

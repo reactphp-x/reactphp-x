@@ -8,6 +8,12 @@ return [
             'channels' => ['daily'],
             'ignore_exceptions' => false,
         ],
+        'sql' => [
+            'driver' => 'stack',
+            'channels' => ['_sql', 'stdout'],
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
         'daily' => [
             'driver' => 'single',
             'path' => base_path('storage/logs/app-access.log'),
@@ -22,7 +28,7 @@ return [
             'replace_placeholders' => true,
             'adapter' => app('fs'),
         ],
-        'sql' => [
+        '_sql' => [
             'driver' => 'single',
             'path' => base_path('storage/logs/app-sql-access.log'),
             'level' => env('LOG_LEVEL', 'debug'),

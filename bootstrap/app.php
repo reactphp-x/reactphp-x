@@ -10,6 +10,14 @@ use ReactphpX\CycleDatabase\AsyncTcpConnectionConfig;
 use Cycle\Database\LoggerFactoryInterface;
 use Cycle\Database\Driver\DriverInterface;
 
+use Cycle\Schema;
+use Cycle\Annotated;
+use Cycle\Annotated\Locator\TokenizerEmbeddingLocator;
+use Cycle\Annotated\Locator\TokenizerEntityLocator;
+use Doctrine\Common\Annotations\AnnotationReader;
+use Cycle\ORM;
+
+
 $basePath = realpath(__DIR__ . '/..');
 
 require_once $basePath . '/vendor/autoload.php';
@@ -53,6 +61,29 @@ $containerBuilder->addDefinitions([
                 return Log::channel('sql');
             }
         });
+    },
+    'orm' => function () {
+        $finder = (new \Symfony\Component\Finder\Finder())->files()->in([base_path('app/Models')]);
+        $classLocator = new \Spiral\Tokenizer\ClassLocator($finder);
+        $embeddingLocator = new TokenizerEmbeddingLocator($classLocator);
+        $entityLocator = new TokenizerEntityLocator($classLocator);
+        $schema = (new Schema\Compiler())->compile(new Schema\Registry(app('db')), [
+            new Schema\Generator\ResetTables(),             // Reconfigure table schemas (deletes columns if necessary)
+            new Annotated\Embeddings($embeddingLocator),    // Recognize embeddable entities
+            new Annotated\Entities($entityLocator),         // Identify attributed entities
+            new Annotated\TableInheritance(),               // Setup Single Table or Joined Table Inheritance
+            new Annotated\MergeColumns(),                   // Integrate table #[Column] attributes
+            new Schema\Generator\GenerateRelations(),       // Define entity relationships
+            new Schema\Generator\GenerateModifiers(),       // Apply schema modifications
+            new Schema\Generator\ValidateEntities(),        // Ensure entity schemas adhere to conventions
+            new Schema\Generator\RenderTables(),            // Create table schemas
+            new Schema\Generator\RenderRelations(),         // Establish keys and indexes for relationships
+            new Schema\Generator\RenderModifiers(),         // Implement schema modifications
+            new Schema\Generator\ForeignKeys(),             // Define foreign key constraints
+            new Annotated\MergeIndexes(),                // Merge table index attributes             // Align table changes with the database
+            new Schema\Generator\GenerateTypecast(),        // Typecast non-string columns
+        ]);
+        return new ORM\ORM(new ORM\Factory(app('db')), new ORM\Schema($schema));
     },
 ]);
 $container = $containerBuilder->build();
