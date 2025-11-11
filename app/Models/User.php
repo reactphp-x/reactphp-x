@@ -3,8 +3,13 @@
 namespace App\Models;
 
 use Cycle\Annotated\Annotation as Cycle;
+use App\Scopes\NotDeletedScope;
 
-#[Cycle\Entity(table: 'users', repository: \App\Repositories\UserPersistRepository::class)]
+#[Cycle\Entity(
+    table: 'users', 
+    repository: \App\Repositories\UserPersistRepository::class, 
+    scope: NotDeletedScope::class,
+)]
 class User
 {
     #[Cycle\Column(type: 'primary')]
@@ -24,4 +29,7 @@ class User
 
     #[Cycle\Column(type: 'datetime', nullable: true)]
     public ?\DateTimeInterface $updatedAt = null;
+
+    #[Cycle\Column(type: 'datetime', nullable: true)]
+    public ?\DateTimeInterface $deletedAt = null;
 }

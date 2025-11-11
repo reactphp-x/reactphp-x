@@ -50,6 +50,11 @@ class CreateUsers extends Migration
             'defaultValue' => null,
             'comment' => '',
         ])
+        ->addColumn('deleted_at', 'datetime', [
+            'nullable' => true,
+            'defaultValue' => null,
+            'comment' => '',
+        ])
         ->setPrimaryKeys(['id'])
         ->create();
     }
