@@ -32,7 +32,10 @@ date_default_timezone_set(env('APP_TIMEZONE', 'Asia/Shanghai'));
 $containerBuilder = new ContainerBuilder();
 $containerBuilder->addDefinitions([
     'fs' => function () {
-        return React\Filesystem\Factory::createRpc('127.0.0.1:8080', true);
+        if (env('APP_DEBUG') === true) {
+            return new React\Filesystem\Fallback\Adapter;
+        }
+        return React\Filesystem\Factory::createRpc('127.0.0.1:8080', false);
     },
     'db' => function () {
         $db = config('database');
