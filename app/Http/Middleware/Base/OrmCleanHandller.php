@@ -8,10 +8,9 @@ class OrmCleanHandller
 {
     public function __invoke(ServerRequestInterface $request, callable $next)
     {
-        return \React\Promise\resolve($next($request))->then(function ($response) {
+        return \React\Promise\resolve($next($request))->finally(function () {
             orm()->getHeap()->clean();
             gc_collect_cycles();
-            return $response;
         });
     }
 }
