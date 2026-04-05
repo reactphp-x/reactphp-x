@@ -81,7 +81,7 @@ if (!function_exists('table')) {
 if (!function_exists('orm')) {
     function orm(): ORM
     {
-        return app('orm');
+        return app('orm')->with(heap: new \Cycle\ORM\Heap\Heap());
     }
 }
 

@@ -12,7 +12,7 @@ $route = new Route($container);
 require __DIR__ . '/../routes/api.php';
 
 $http = new HttpServer(
-    new \App\Http\Middleware\Base\OrmCleanHandller(),
+    // new \App\Http\Middleware\Base\OrmCleanHandller(),
     new \App\Http\Middleware\Base\AccessLogHandler(),
     new \App\Http\Middleware\Base\ErrorHandler(),
     new \App\Http\Middleware\Base\CrosMiddleware(),
