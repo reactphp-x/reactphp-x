@@ -27,7 +27,8 @@
   "scripts": {
     "start": "php -d variables_order=EGPCS index.php",
     "hello": "php app/Commands/hello.php",
-    "db-example": "php app/Commands/database-example.php"
+    "db-example": "php app/Commands/database-example.php",
+    "token-test": "php app/Commands/token-test.php"
   },
   "require-dev": {
     "wpjscc/migrations": "4.x-dev"
