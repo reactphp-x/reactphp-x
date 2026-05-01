@@ -239,6 +239,7 @@ MD,
             'avatar' => $user->avatar,
             'created_at' => $user->createdAt?->format(\DateTimeInterface::ATOM),
             'updated_at' => $user->updatedAt?->format(\DateTimeInterface::ATOM),
+            'access_token' => $user->currentAccessToken(),
         ];
     }
 

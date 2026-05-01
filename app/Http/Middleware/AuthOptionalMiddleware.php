@@ -21,6 +21,8 @@ class AuthOptionalMiddleware
             return $this->unauthorizedResponse();
         }
 
+        $auth['user']->withAccessToken($auth['token']);
+
         $request = $request
             ->withAttribute('user', $auth['user'])
             ->withAttribute('access_token', $auth['token']);
