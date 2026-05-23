@@ -185,6 +185,82 @@ $activeUsers = $repository->withActive()->findAll([]);
 $users = $repository->findAll([]);
 ```
 
+#### Updating Relation Fields
+
+When a column is also used as the `innerKey` of a `BelongsTo` relation, assigning the foreign key directly (e.g. `$user->managerId = 2`) often **does not persist**, because Cycle ORM keeps a `Reference` snapshot for the relation and may overwrite the FK on save.
+
+**Always use the same ORM instance** for load and save within one update flow.
+
+The examples below use a self-referential `User` → `manager` relation (`manager_id` column):
+
+```php
+// Entity excerpt (app/Models/User.php)
+#[Cycle\Column(type: 'integer', nullable: true)]
+public ?int $managerId = null;
+
+#[Cycle\Column(type: 'integer', nullable: true, name: 'manager_id')]
+public ?int $aliasManagerId = null;
+
+#[Cycle\Relation\BelongsTo(target: User::class, innerKey: 'managerId', nullable: true)]
+private ?User $manager = null;
+
+public function assignManager(User $manager): void
+{
+    $this->manager = $manager;
+}
+```
+
+**Method 1 — Alias column (update FK only, no relation load)**
+
+Map a second property to the same DB column that is **not** bound to the relation:
+
+```php
+$orm = orm();
+$userRepository = $orm->getRepository(User::class);
+$user = $userRepository->select()->wherePK(1)->fetchOne();
+
+$user->aliasManagerId = 2;  // persists
+// $user->managerId = 2;   // does NOT persist (relation FK)
+
+$userRepository->save($user);
+```
+
+**Method 2 — Preload relation, then update FK**
+
+Eager-load the relation first; after that, updating the FK property works:
+
+```php
+$orm = orm();
+$userRepository = $orm->getRepository(User::class);
+$user = $userRepository->select()->load('manager')->wherePK(1)->fetchOne();
+
+$user->managerId = 2;  // persists after relation is loaded
+
+$userRepository->save($user);
+```
+
+**Method 3 — Set related entity (recommended)**
+
+Assign the related model (or a dedicated helper) so ORM syncs the FK:
+
+```php
+$orm = orm();
+$userRepository = $orm->getRepository(User::class);
+$user = $userRepository->findByPK(1);
+$manager = $orm->getRepository(User::class)->findByPK(2);
+
+$user->manager = $manager;
+// or: $user->assignManager($manager);
+
+$userRepository->save($user);
+```
+
+| Method | When to use |
+|--------|-------------|
+| Alias column | Only need to change FK; avoid loading related entity |
+| Preload + FK | Relation data already needed; update FK in same query |
+| Set entity / `assign*` | Semantically correct; keeps relation and FK in sync |
+
 #### Migrations
 
 Manage database migrations:
