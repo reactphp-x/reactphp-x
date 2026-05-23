@@ -64,7 +64,6 @@ async(function () {
             ->select()
             ->where([
                 'status' => 1,
-                'is_active' => true
             ])
             ->orderBy('created_at', 'DESC')
             ->limit(5)
@@ -144,23 +143,21 @@ async(function () {
         
         $upsertData = [
             [
-                'username' => 'user001',
                 'name' => 'User One',
                 'email' => 'user001@example.com',
                 'status' => 1,
                 'updated_at' => date('Y-m-d H:i:s'),
             ],
             [
-                'username' => 'user002',
                 'name' => 'User Two',
                 'email' => 'user002@example.com',
                 'status' => 1,
                 'updated_at' => date('Y-m-d H:i:s'),
             ],
         ];
-        
+
         table('users')->upsert()
-            ->conflicts(['username'])  // 冲突字段
+            ->conflicts(['email'])
             ->columns(array_keys($upsertData[0]))
             ->values($upsertData)
             ->updates(['name', 'email', 'status', 'updated_at'])  // 冲突时更新的字段

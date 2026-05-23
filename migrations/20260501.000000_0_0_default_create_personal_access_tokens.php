@@ -12,8 +12,10 @@ class CreatePersonalAccessTokens extends Migration
 
     public function up(): void
     {
+
         $this->table('personal_access_tokens')
             ->addColumn('id', 'bigPrimary', [
+                'autoIncrement' => true,
                 'nullable' => false,
                 'unsigned' => true,
             ])
@@ -47,7 +49,6 @@ class CreatePersonalAccessTokens extends Migration
             ->addColumn('updated_at', 'timestamp', [
                 'nullable' => true,
             ])
-            ->setPrimaryKeys(['id'])
             ->addIndex(['token'], ['unique' => true, 'name' => 'xcx_personal_access_tokens_token_unique'])
             ->addIndex(['tokenable_type', 'tokenable_id'], ['name' => 'xcx_personal_access_tokens_tokenable_type_tokenable_id_index'])
             ->addIndex(['expires_at'], ['name' => 'xcx_personal_access_tokens_expires_at_index'])

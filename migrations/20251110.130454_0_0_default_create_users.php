@@ -13,16 +13,18 @@ class CreateUsers extends Migration
     public function up(): void
     {
         $this->table('users')
-        ->addColumn('id', 'primary', [
-            'nullable' => false,
-            'defaultValue' => null,
-            'size' => 11,
+        ->addColumn('id', 'bigPrimary', [
             'autoIncrement' => true,
-            'unsigned' => false,
-            'zerofill' => false,
-            'comment' => '',
+            'nullable' => false,
+            'unsigned' => true,
         ])
         ->addColumn('name', 'string', [
+            'nullable' => false,
+            'defaultValue' => null,
+            'size' => 255,
+            'comment' => '',
+        ])
+        ->addColumn('email', 'string', [
             'nullable' => false,
             'defaultValue' => null,
             'size' => 255,
@@ -55,7 +57,7 @@ class CreateUsers extends Migration
             'defaultValue' => null,
             'comment' => '',
         ])
-        ->setPrimaryKeys(['id'])
+        ->addIndex(['email'], ['unique' => true, 'name' => 'users_email_unique'])
         ->create();
     }
 

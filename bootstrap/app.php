@@ -4,11 +4,14 @@ use Dotenv\Dotenv;
 use DI\ContainerBuilder;
 use ReactphpX\Log\Log;
 use Cycle\Database\Config as Config;
+use Cycle\Database\Config\SQLite\FileConnectionConfig;
+use Cycle\Database\Config\SQLite\MemoryConnectionConfig;
+use Cycle\Database\Driver\DriverInterface;
+use Cycle\Database\LoggerFactoryInterface;
 use ReactphpX\CycleDatabase\AsyncDatabaseManager;
 use ReactphpX\CycleDatabase\AsyncMySQLDriverConfig;
+use ReactphpX\CycleDatabase\AsyncSQLiteDriverConfig;
 use ReactphpX\CycleDatabase\AsyncTcpConnectionConfig;
-use Cycle\Database\LoggerFactoryInterface;
-use Cycle\Database\Driver\DriverInterface;
 
 use Cycle\Schema;
 use Cycle\Annotated;
@@ -38,32 +41,70 @@ $containerBuilder->addDefinitions([
         return React\Filesystem\Factory::createRpc('127.0.0.1:8080', false);
     },
     'db' => function () {
-        $db = config('database');
-        $mysql = $db['connections']['mysql'];
-        return new AsyncDatabaseManager(new Config\DatabaseConfig([
-            'default' => $db['default'],
-            'databases' => $db['databases'],
-            'connections' => [
-                'mysql' => new AsyncMySQLDriverConfig(
+        $config = config('database');
+
+        $driverFactories = [
+            'mysql' => static function (array $connection): AsyncMySQLDriverConfig {
+                return new AsyncMySQLDriverConfig(
                     connection: new AsyncTcpConnectionConfig(
-                        database: $mysql['database'],
-                        host: $mysql['host'],
-                        port: (int) $mysql['port'],
-                        charset: $mysql['charset'],
-                        user: $mysql['user'],
-                        password: $mysql['password']
+                        database: $connection['database'],
+                        host: $connection['host'],
+                        port: (int) $connection['port'],
+                        charset: $connection['charset'],
+                        user: $connection['user'],
+                        password: $connection['password'],
                     ),
-                    options: array_merge($mysql['pool'], [
-                        'logInterpolatedQueries' => true,
-                    ])
-                ),
-            ],
-        ]), new class implements LoggerFactoryInterface {
-            public function getLogger(?DriverInterface $driver = null): Psr\Log\LoggerInterface
-            {
-                return Log::channel('sql');
+                    timezone: $connection['timezone'] ?? 'Asia/Shanghai',
+                    options: array_merge($connection['pool'] ?? [], $connection['options'] ?? []),
+                );
+            },
+            'sqlite' => static function (array $connection): AsyncSQLiteDriverConfig {
+                $database = $connection['database'];
+                $connectionConfig = $database === ':memory:'
+                    ? new MemoryConnectionConfig()
+                    : new FileConnectionConfig($database);
+
+                if ($database !== ':memory:') {
+                    $directory = dirname($database);
+                    if ($directory !== '' && ! is_dir($directory)) {
+                        @mkdir($directory, 0777, true);
+                    }
+                }
+
+                return new AsyncSQLiteDriverConfig(
+                    connection: $connectionConfig,
+                    timezone: $connection['timezone'] ?? 'Asia/Shanghai',
+                    options: $connection['options'] ?? [],
+                );
+            },
+        ];
+
+        $connections = [];
+        foreach ($config['connections'] ?? [] as $name => $connection) {
+            $driver = $connection['driver'] ?? $name;
+
+            if (! isset($driverFactories[$driver])) {
+                throw new InvalidArgumentException(
+                    "Unsupported database driver [{$driver}] for connection [{$name}]."
+                );
             }
-        });
+
+            $connections[$name] = $driverFactories[$driver]($connection);
+        }
+
+        return new AsyncDatabaseManager(
+            new Config\DatabaseConfig([
+                'default' => $config['default'],
+                'databases' => $config['databases'],
+                'connections' => $connections,
+            ]),
+            new class implements LoggerFactoryInterface {
+                public function getLogger(?DriverInterface $driver = null): Psr\Log\LoggerInterface
+                {
+                    return Log::channel('sql');
+                }
+            }
+        );
     },
     'orm' => function () {
         $finder = (new \Symfony\Component\Finder\Finder())->files()->in([base_path('app/Models')]);
@@ -101,5 +142,3 @@ if ($logging) {
 }
 
 return $container;
-
-

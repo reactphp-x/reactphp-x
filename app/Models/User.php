@@ -24,6 +24,9 @@ class User implements TokenableInterface
     #[Cycle\Column(type: 'string')]
     public string $name;
 
+    #[Cycle\Column(type: 'string')]
+    public string $email;
+
     #[Cycle\Column(type: 'smallInteger')]
     public int $status = 0;
 
