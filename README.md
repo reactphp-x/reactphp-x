@@ -261,6 +261,8 @@ $userRepository->save($user);
 | Preload + FK | Relation data already needed; update FK in same query |
 | Set entity / `assign*` | Semantically correct; keeps relation and FK in sync |
 
+Note: When updating, you must use the same orm instance, i.e., orm(). For each request, you should not attach or reuse the same orm() instance globally. For example, if a service depends on UserPersistRepository, each time the service is used, a new instance of UserPersistRepository must be created. 
+
 #### Migrations
 
 Manage database migrations:

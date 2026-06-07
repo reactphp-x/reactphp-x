@@ -85,6 +85,14 @@ if (!function_exists('orm')) {
     }
 }
 
+if (!function_exists('repo')) {
+     /** @template T of object */
+    function repo(string $entity): \Cycle\ORM\RepositoryInterface
+    {
+        return orm()->getRepository($entity);
+    }
+}
+
 if (!function_exists('getMemoryUsage')) {
     function getMemoryUsage(): array
     {

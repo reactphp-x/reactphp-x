@@ -34,7 +34,7 @@ class HelloController
     {
         return new Response(200, ['Content-Type' => 'application/json'], json_encode([
             'message' => 'Hello, API!',
-            'user' => app('orm')->getRepository(User::class)->findByPK(1),
+            'user' => repo(User::class)->findByPK(1),
         ]));
     }
 
