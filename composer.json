@@ -16,10 +16,15 @@
   "autoload": {
     "psr-4": {
       "App\\": "app/"
-    },  
+    },
     "files": [
       "bootstrap/helpers.php"
     ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
@@ -28,9 +33,11 @@
     "start": "php -d variables_order=EGPCS index.php",
     "hello": "php app/Commands/hello.php",
     "db-example": "php app/Commands/database-example.php",
-    "token-test": "php app/Commands/token-test.php"
+    "token-test": "php app/Commands/token-test.php",
+    "test": "pest"
   },
   "require-dev": {
-    "wpjscc/migrations": "4.x-dev"
+    "wpjscc/migrations": "4.x-dev",
+    "pestphp/pest": "^3.8"
   }
 }
