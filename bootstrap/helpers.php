@@ -87,9 +87,9 @@ if (!function_exists('orm')) {
 
 if (!function_exists('repo')) {
      /** @template T of object */
-    function repo(string $entity): \Cycle\ORM\RepositoryInterface
+    function repo(string $entity, ?ORM $orm = null): \Cycle\ORM\RepositoryInterface
     {
-        return orm()->getRepository($entity);
+        return ($orm ?? orm())->getRepository($entity);
     }
 }
 
