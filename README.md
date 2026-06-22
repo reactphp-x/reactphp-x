@@ -21,6 +21,25 @@ composer start
 # visit http://127.0.0.1:8080/api/hello
 ```
 
+### Development (Hot Reload)
+
+ReactPHP runs as a long-lived process; code changes do not apply until the server restarts. Use [nodemon](https://github.com/remy/nodemon) via `npx` to watch source files and restart automatically (requires Node.js/npm):
+
+```bash
+npx nodemon \
+  -e php,env \
+  --watch app \
+  --watch routes \
+  --watch config \
+  --watch bootstrap \
+  --watch public/index.php \
+  --watch .env \
+  --exec "php -d variables_order=EGPCS public/index.php"
+```
+
+- Type `rs` and press Enter to restart manually.
+- Press Ctrl+C to stop.
+
 ### Commands
 ```bash
 # Simple hello command
