@@ -141,4 +141,10 @@ if ($logging) {
     Log::configure($logging);
 }
 
+// Build ORM once before the React loop handles concurrent requests. PHP-DI tracks
+// in-flight resolutions on the container (not per-fiber); a slow `orm` factory that
+// suspends on async I/O can overlap with another request's `get('orm')` and false
+// "Circular dependency: orm -> orm".
+$container->get('orm');
+
 return $container;
